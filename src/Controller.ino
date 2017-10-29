@@ -239,12 +239,12 @@ boolean MQTTpublish(int controller_idx, const char* topic, const char* payload, 
   MQTTConnect(controller_idx);
   return false;
 }
-
 /*********************************************************************************************\
  * Send status info back to channel where request came from
 \*********************************************************************************************/
 void MQTTStatus(String& status)
 {
+  unsigned int idx;
   ControllerSettingsStruct ControllerSettings;
   int enabledMqttController = firstEnabledMQTTController();
   if (enabledMqttController >= 0) {
@@ -252,6 +252,12 @@ void MQTTStatus(String& status)
     String pubname = ControllerSettings.Subscribe;
     pubname.replace(F("/#"), F("/status"));
     pubname.replace(F("%sysname%"), Settings.Name);
+    idx = status.indexOf(F("%o!o%"));
+    if (idx) {
+      pubname += status.substring(idx);
+      pubname.replace(F("%o!o%"), F("/"));
+      status.remove(idx);
+    }
     MQTTpublish(enabledMqttController, pubname.c_str(), status.c_str(),Settings.MQTTRetainFlag);
   }
 }
